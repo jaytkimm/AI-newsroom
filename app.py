@@ -3,6 +3,8 @@ from datetime import datetime, timezone
 
 from github_storage import get_feeds, save_feeds, get_daily_reports, save_daily_report
 from rss_parser import fetch_and_filter_articles
+from naver_scraper import fetch_naver_news
+from youtube_scraper import fetch_youtube_videos
 from ai_reporter import generate_daily_briefing
 
 st.set_page_config(
@@ -57,9 +59,38 @@ def show_main_screen():
     
     st.divider()
     
-    # Render Report
+    # Render Report & Infographics
     if selected_date in reports:
-        st.markdown(reports[selected_date])
+        report_str = reports[selected_date]
+        
+        # Check if mermaid code is attached
+        if "```mermaid" in report_str:
+            parts = report_str.split("```mermaid")
+            text_content = parts[0]
+            mermaid_code = parts[1].split("```")[0]
+            
+            # Print main text first
+            st.markdown(text_content)
+            
+            # Render mermaid via Javascript Sandbox Component
+            import streamlit.components.v1 as components
+            html = f"""
+            <script type="module">
+                import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+                mermaid.initialize({{ startOnLoad: true }});
+            </script>
+            <div class="mermaid" style="display:flex; justify-content:center; align-items:center; background-color:white; border-radius:10px; padding:20px;">
+                {mermaid_code}
+            </div>
+            """
+            components.html(html, height=500, scrolling=True)
+            
+            # Print any remaining trailing text after code block
+            remaining = parts[1].split("```", 1)
+            if len(remaining) > 1:
+                st.markdown(remaining[1])
+        else:
+            st.markdown(report_str)
     else:
         st.warning("선택한 날짜의 리포트를 불러올 수 없습니다.")
 
@@ -103,16 +134,30 @@ def show_admin_dashboard():
     st.header("2. AI 분석 파이프라인 트리거")
     st.markdown("등록된 RSS 피드를 스크랩하여 최근 72시간 이내의 뉴스를 AI가 수집 및 분석합니다.")
     
-    if st.button("🚀 데이터 수집 및 AI 리포트 생성 시작", type="primary"):
+    if st.button("🚀 전체 데이터 수집 및 AI 리포트 생성 (가전, 네이버, 유튜브 포함)", type="primary", use_container_width=True):
         with st.spinner("파이프라인 실행 중... (시간이 소요될 수 있습니다)"):
             try:
-                # 1. Fetch
-                st.toast("1. 뉴스 기사 수집 중...")
-                articles = fetch_and_filter_articles(feeds, hours=72)
-                st.info(f"총 {len(articles)}개의 기사가 수집되었습니다.")
+                articles = []
                 
-                # 2. Add AI Briefing
-                st.toast("2. Gemini AI 리포트 생성 중...")
+                # 1. Fetch Google RSS
+                if feeds:
+                    st.toast("1. 구글 뉴스 기사 수집 중...")
+                    articles += fetch_and_filter_articles(feeds, hours=72)
+                
+                # 2. Fetch Naver Scraper
+                st.toast("2. 네이버 뉴스 스크래핑 수집 중...")
+                naver_queries = ["가전", "로봇청소기", "스마트홈", "AI가전"] # 기본 검색어
+                articles += fetch_naver_news(naver_queries, hours=72)
+                
+                # 3. Fetch YouTube
+                st.toast("3. 유튜브 테크/가전 관련 최근 영상 분석 중...")
+                youtube_channels = ["UChbDEJUckWuoEBSOFTwMtbQ", "UCHs0X-ZqA8k_T-tVq0zM6fA"] # 대표 테크채널 예시
+                articles += fetch_youtube_videos(youtube_channels, hours=72)
+                
+                st.info(f"총 {len(articles)}개의 기사 및 영상이 수집되었습니다.")
+                
+                # 4. Generate AI Briefing + Infographic
+                st.toast("4. Nano-Banana 인포그래픽 및 AI 리포트 작성 중...")
                 report_md = generate_daily_briefing(articles)
                 
                 # 3. Save
