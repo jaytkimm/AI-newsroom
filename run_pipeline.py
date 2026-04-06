@@ -44,11 +44,21 @@ def main():
     print(f"[{today_str}] 스케줄러 수집 실행 (최근 {hours_to_fetch}시간 역추적)...")
     
     feeds = get_feeds()
+    if not feeds: feeds = []
+    
+    # 확실한 뉴스 보장을 위해 구글 뉴스 기본 피드를 무조건 추가
+    default_feeds = ["https://news.google.com/rss/search?q=%EA%B0%80%EC%A0%84%EC%A0%9C%ED%92%88+when:7d&hl=ko&gl=KR&ceid=KR:ko",
+                     "https://news.google.com/rss/search?q=%EC%8A%A4%EB%A7%88%ED%8A%B8%ED%99%88+when:7d&hl=ko&gl=KR&ceid=KR:ko"]
+    for df in default_feeds:
+        if df not in feeds: feeds.append(df)
+        
     articles = []
     
     if feeds:
+        print("RSS 피드(구글 뉴스 포함) 수집 중...")
         articles += fetch_and_filter_articles(feeds, hours=hours_to_fetch)
         
+    print("네이버 뉴스 수집 중...")
     naver_queries = ["가전", "로봇청소기", "스마트홈", "AI가전"]
     articles += fetch_naver_news(naver_queries, hours=hours_to_fetch)
     
