@@ -5,3 +5,6 @@ google-generativeai
 PyGithub
 beautifulsoup4
 requests
+markdown
+holidays
+pytz
