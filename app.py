@@ -63,27 +63,19 @@ def show_main_screen():
     if selected_date in reports:
         report_str = reports[selected_date]
         
-        # Check if mermaid code is attached
-        if "```mermaid" in report_str:
-            parts = report_str.split("```mermaid")
+        # Check if html code is attached
+        if "```html" in report_str:
+            parts = report_str.split("```html")
             text_content = parts[0]
-            mermaid_code = parts[1].split("```")[0]
+            html_code = parts[1].split("```")[0]
             
             # Print main text first
             st.markdown(text_content)
             
-            # Render mermaid via Javascript Sandbox Component
+            # Render HTML Infographic Dashboard
             import streamlit.components.v1 as components
-            html = f"""
-            <script type="module">
-                import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-                mermaid.initialize({{ startOnLoad: true }});
-            </script>
-            <div class="mermaid" style="display:flex; justify-content:center; align-items:center; background-color:white; border-radius:10px; padding:20px;">
-                {mermaid_code}
-            </div>
-            """
-            components.html(html, height=500, scrolling=True)
+            # Wrap the generated html in a nice container if needed, but the model should provide full styling
+            components.html(html_code, height=750, scrolling=True)
             
             # Print any remaining trailing text after code block
             remaining = parts[1].split("```", 1)
