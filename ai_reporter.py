@@ -61,8 +61,8 @@ def generate_daily_briefing(articles, model_name="gemini-2.5-flash"):
             
         # Add Infographic logic
         infographic_code = generate_infographic(articles)
-        if infographic_code and "%% 다이어그램 생성 실패" not in infographic_code:
-            report_text = report_text + f"\n\n### 📊 한눈에 보는 요약\n```mermaid\n{infographic_code}\n```"
+        if infographic_code and "다이어그램 생성 실패" not in infographic_code:
+            report_text = report_text + f"\n\n### 📊 한눈에 보는 요약 (첨단 AI 인포그래픽)\n```html\n{infographic_code}\n```"
             
         return report_text
     except Exception as e:
@@ -84,13 +84,15 @@ def generate_infographic(articles):
         articles_text += f"{i}. {article['title']} ({article['feed_source']})\n"
         
     prompt = f"""
-    아래는 수집된 최신 가전제품 뉴스 기사 목록입니다.
-    이를 바탕으로 가장 많이 언급된 브랜드, 제품군(정수기, 공기청정기, 로봇청소기 등), 혹은 최신 트렌드를 보여주는 인포그래픽용 다이어그램을 **Mermaid.js** 문법으로만 작성해주세요.
+    아래는 수집된 최신 가전제품 및 IT 뉴스 기사 목록입니다.
+    이를 바탕으로 기업 경영진이 한눈에 파악할 수 있는 **매우 화려하고 미래지향적인(사이버펑크) 다크 테마 기반의 HTML/CSS 종합 대시보드(인포그래픽)** 코드를 작성해주세요.
     
-    [가이드라인]
-    1. Pie chart(파이차트) 또는 Mindmap 중 하나를 사용하여 내용을 도식화 하세요.
-    2. 응답에는 오직 ```mermaid 로 시작하고 ``` 로 끝나는 코드 블록만 포함해야 합니다.
-    3. 코드 문법 오류가 나지 않도록 매우 조심하세요.
+    [디자인 및 레이아웃 가이드라인]
+    1. **Mermaid나 차트 라이브러리를 쓰지 마세요.** 오직 순수 HTML과 CSS(<style> 태그)만을 활용하여 화려한 UI를 설계해야 합니다.
+    2. 전체 배경은 아주 짙은 어두운 색(블랙/다크 네이비)으로 지정하고, 각 요소의 테두리나 텍스트 그림자에 네온 블루(#00f3ff) 및 네온 퍼플(#b026ff) 같은 형광색(glow 효과)을 듬뿍 넣어 첨단 IT 관제 센터 느낌을 연출하세요.
+    3. CSS Grid나 Flexbox를 이용해, 화면의 정중앙에는 가장 중요한 '핵심 트렌드 요약' 블록을 띄우고, 좌/우측이나 모서리 쪽에 4~5개의 세부 테마 블록들(예: AI 혁신, 금융 시장, 보안, 글로벌 트렌드 등 제공된 기사를 바탕으로 분류) 방사형 혹은 대칭 형태로 멋지게 배치하세요.
+    4. 각 블록 안에는 뉴스 기사에서 분석한 핵심 인사이트 텍스트를 가독성 좋은 폰트 크기 및 색상으로 채워주세요. (불릿 포인트 리스트 적극 활용, 제목은 형광색 텍스트)
+    5. 응답 결과는 반드시 ```html 로 시작하고 ``` 로 끝나는 단일 코드 블록 형태로만 제공해야 하며, 다른 부연 설명은 절대 적지 마세요.
     
     [기사 목록]
     {articles_text}
@@ -103,11 +105,11 @@ def generate_infographic(articles):
             model = genai.GenerativeModel("models/gemini-2.5-flash")
             response = model.generate_content(prompt)
         text = response.text
-        if "```mermaid" in text:
-            text = text.split("```mermaid")[1].split("```")[0].strip()
+        if "```html" in text:
+            text = text.split("```html")[1].split("```")[0].strip()
         elif "```" in text:
             text = text.split("```")[1].strip()
         return text
     except Exception as e:
-        return f"%% 다이어그램 생성 실패: {str(e)}"
+        return f"<!-- 다이어그램 생성 실패: {str(e)} -->"
 
