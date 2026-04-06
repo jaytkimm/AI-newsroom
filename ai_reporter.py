@@ -59,6 +59,55 @@ def generate_daily_briefing(articles, model_name="gemini-2.5-flash"):
             report_text = report_text.replace(f"(ID:{i})", f"({article['link']})")
             report_text = report_text.replace(f"(ID: {i})", f"({article['link']})")
             
+        # Add Infographic logic
+        infographic_code = generate_infographic(articles)
+        if infographic_code and "%% 다이어그램 생성 실패" not in infographic_code:
+            report_text = report_text + f"\n\n### 📊 한눈에 보는 요약\n```mermaid\n{infographic_code}\n```"
+            
         return report_text
     except Exception as e:
         return f"리포트 생성 중 오류가 발생했습니다: {str(e)}"
+
+def generate_infographic(articles):
+    """
+    Generate a Mermaid.js diagram code using nano-banana-pro-preview.
+    """
+    api_key = get_gemini_api_key()
+    if not api_key:
+        return ""
+    genai.configure(api_key=api_key)
+    try:
+        model = genai.GenerativeModel("models/nano-banana-pro-preview")
+    except:
+        model = genai.GenerativeModel("models/gemini-2.5-flash")
+        
+    if not articles:
+        return ""
+        
+    articles_text = ""
+    for i, article in enumerate(articles, 1):
+        articles_text += f"{i}. {article['title']} ({article['feed_source']})\n"
+        
+    prompt = f"""
+    아래는 수집된 최신 가전제품 뉴스 기사 목록입니다.
+    이를 바탕으로 가장 많이 언급된 브랜드, 제품군(정수기, 공기청정기, 로봇청소기 등), 혹은 최신 트렌드를 보여주는 인포그래픽용 다이어그램을 **Mermaid.js** 문법으로만 작성해주세요.
+    
+    [가이드라인]
+    1. Pie chart(파이차트) 또는 Mindmap 중 하나를 사용하여 내용을 도식화 하세요.
+    2. 응답에는 오직 ```mermaid 로 시작하고 ``` 로 끝나는 코드 블록만 포함해야 합니다.
+    3. 코드 문법 오류가 나지 않도록 매우 조심하세요.
+    
+    [기사 목록]
+    {articles_text}
+    """
+    try:
+        response = model.generate_content(prompt)
+        text = response.text
+        if "```mermaid" in text:
+            text = text.split("```mermaid")[1].split("```")[0].strip()
+        elif "```" in text:
+            text = text.split("```")[1].strip()
+        return text
+    except Exception as e:
+        return f"%% 다이어그램 생성 실패: {str(e)}"
+
