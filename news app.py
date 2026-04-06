@@ -15,7 +15,7 @@ ADMIN_PASSWORD = st.secrets["ADMIN_PASSWORD"]
 
 # Gemini & GitHub 설정
 genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-1.5-flash-latest')
 g = Github(GITHUB_TOKEN)
 repo = g.get_repo(GITHUB_REPO)
 
