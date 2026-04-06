@@ -76,11 +76,6 @@ def generate_infographic(articles):
     if not api_key:
         return ""
     genai.configure(api_key=api_key)
-    try:
-        model = genai.GenerativeModel("models/nano-banana-pro-preview")
-    except:
-        model = genai.GenerativeModel("models/gemini-2.5-flash")
-        
     if not articles:
         return ""
         
@@ -101,7 +96,12 @@ def generate_infographic(articles):
     {articles_text}
     """
     try:
-        response = model.generate_content(prompt)
+        try:
+            model = genai.GenerativeModel("models/nano-banana-pro-preview")
+            response = model.generate_content(prompt)
+        except Exception as preview_e:
+            model = genai.GenerativeModel("models/gemini-2.5-flash")
+            response = model.generate_content(prompt)
         text = response.text
         if "```mermaid" in text:
             text = text.split("```mermaid")[1].split("```")[0].strip()
