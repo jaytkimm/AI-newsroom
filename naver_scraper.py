@@ -7,7 +7,12 @@ def fetch_naver_news(queries, hours=72):
     네이버 뉴스 검색을 스크래핑합니다. (최신순 필터링은 하지 않고 검색결과 1페이지 위주 수집)
     """
     import urllib.parse
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9",
+        "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Referer": "https://search.naver.com/"
+    }
     
     articles = []
     
@@ -34,6 +39,8 @@ def fetch_naver_news(queries, hours=72):
                         'published': datetime.now(timezone.utc).isoformat(),
                         'feed_source': f"네이버 뉴스 ({query})"
                     })
+            if not news_items: print(f"네이버 뉴스 검색결과가 없습니다. (Anti-bot 차단 의심) - {query}")
+            else: print(f"네이버 뉴스 {len(news_items)}건 수집 완료 - {query}")
         except Exception as e:
             print(f"Error fetching Naver news for {query}: {e}")
             
