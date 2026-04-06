@@ -1,0 +1,14 @@
+# Streamlit secrets must NOT be committed
+.streamlit/secrets.toml
+
+# Python virtual environment and caches
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+.env
+
+# MacOS/Windows system files
+.DS_Store
+Thumbs.db
